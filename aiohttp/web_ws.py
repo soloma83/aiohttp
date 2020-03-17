@@ -80,7 +80,7 @@ class WebSocketResponse(StreamResponse):
 
     async def heartbeat_ping(self):
         try:
-            self._writer.ping()
+            await self._writer.ping()
         except RuntimeError as ex:
             ws_logger.warning("Got error during sending ping: {}"
                               .format(ex.__str__()))
