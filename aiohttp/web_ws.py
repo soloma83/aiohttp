@@ -84,9 +84,15 @@ class WebSocketResponse(StreamResponse):
         except RuntimeError as ex:
             ws_logger.warning("Got error during sending ping: {}"
                               .format(ex.__str__()))
-            # Passing by exception as soon _pong_not_received
-            # will handle failure
-            pass
+            # cancel heartbeat
+            self._cancel_heartbeat()
+            # closing WS and raising error
+            self._closed = True
+            self._close_code = 1006
+            self._exception = asyncio.TimeoutError()
+            # closing transport if exists
+            if self._req is not None and self._req.transport is not None:
+                self._req.transport.close()
 
     def _cancel_heartbeat(self) -> None:
         if self._pong_response_cb is not None:
