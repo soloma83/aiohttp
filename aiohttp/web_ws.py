@@ -78,6 +78,14 @@ class WebSocketResponse(StreamResponse):
         self._compress = compress
         self._max_msg_size = max_msg_size
 
+    async def heartbeat_ping(self):
+        try:
+            self._writer.ping()
+        except RuntimeError as ex:
+            ws_logger.warning("Got error during sending ping: {}"
+                              .format(ex.__str__()))
+            raise ex
+
     def _cancel_heartbeat(self) -> None:
         if self._pong_response_cb is not None:
             self._pong_response_cb.cancel()
@@ -99,7 +107,7 @@ class WebSocketResponse(StreamResponse):
             # fire-and-forget a task is not perfect but maybe ok for
             # sending ping. Otherwise we need a long-living heartbeat
             # task in the class.
-            self._loop.create_task(self._writer.ping())  # type: ignore
+            self._loop.create_task(self.heartbeat_ping())  # type: ignore
 
             if self._pong_response_cb is not None:
                 self._pong_response_cb.cancel()
