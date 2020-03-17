@@ -84,7 +84,9 @@ class WebSocketResponse(StreamResponse):
         except RuntimeError as ex:
             ws_logger.warning("Got error during sending ping: {}"
                               .format(ex.__str__()))
-            raise ex
+            # Passing by exception as soon _pong_not_received
+            # will handle failure
+            pass
 
     def _cancel_heartbeat(self) -> None:
         if self._pong_response_cb is not None:
